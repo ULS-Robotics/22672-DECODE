@@ -25,7 +25,7 @@ public class OpMode extends LinearOpMode {
     @Override
     public void runOpMode() {
         //imu = hardwareMap.get(Gyroscope.class, "imu");
-        motorTest = hardwareMap.get(DcMotor.class, "motorTest");
+        //motorTest = hardwareMap.get(DcMotor.class, "motorTest");
         //digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
         //sensorColorRange = hardwareMap.get(DistanceSensor.class, "sensorColorRange");
         //servoTest = hardwareMap.get(Servo.class, "servoTest");
