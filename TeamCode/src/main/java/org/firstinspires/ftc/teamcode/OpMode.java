@@ -19,6 +19,8 @@ public class OpMode extends LinearOpMode {
     private Servo servoTest;
     */
     public DcMotor motorTest;
+    public DcMotor motorFL, motorFR, motorBL, motorBR;
+
 
     @Override
     public void runOpMode() {
@@ -36,22 +38,36 @@ public class OpMode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         double tgtPower = 0;
         while (opModeIsActive()) {
+            //FL = y-x-T, FR = y+x-T, BL = y+x+T, BR = y-x-T
+
+            double yInput = gamepad1.left_stick_y;
+            double xInput = gamepad1.left_stick_x;
+            double tInput = gamepad1.right_stick_x;
+
+            double powerFL = yInput-xInput-tInput;
+            double powerFR = yInput+xInput-tInput;
+            double powerBL = yInput+xInput+tInput;
+            double powerBR = yInput-xInput-tInput;
+
+            motorFL.setPower(powerFL);
+            motorFR.setPower(powerFR);
+            motorBL.setPower(powerBL);
+            motorBR.setPower(powerBR);
+
+            telemetry.addData("FL Power", motorFL.getPower());
+            telemetry.addData("FR Power", motorFR.getPower());
+            telemetry.addData("BL Power", motorBL.getPower());
+            telemetry.addData("BR Power", motorBR.getPower());
+            telemetry.update();
 
             // Check if left bumper is currently held
-            boolean lBIsPressed = gamepad1.left_bumper;
+            /*tgtPower = -this.gamepad1.left_trigger;
 
-            if (lBIsPressed) {
-                // Run motor only while holding LB
-                tgtPower = -1;
-                motorTest.setPower(tgtPower);
-            } else {
-                // Stop motor when LB is released
-                motorTest.setPower(0);
-            }
+            motorTest.setPower(tgtPower);
 
-            telemetry.addData("Left Bumper Held?", lBIsPressed);
             telemetry.addData("Motor Power", motorTest.getPower());
             telemetry.update();
+             */
         }
 
     }
