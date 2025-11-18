@@ -48,10 +48,10 @@ public class OpMode extends LinearOpMode {
             //FL = y-x-T, FR = y+x-T, BL = y+x+T, BR = y-x-T
 
             double yInput = -gamepad1.left_stick_y;
-            double xInput = -gamepad1.left_stick_x;
-            double tInput = -gamepad1.right_stick_x;
+            double xInput = gamepad1.left_stick_x;
+            double tInput = gamepad1.right_stick_x;
 
-            double powerFL = yInput-xInput-tInput;
+            double powerFL = yInput-xInput+tInput;
             double powerFR = yInput+xInput-tInput;
             double powerBL = yInput+xInput+tInput;
             double powerBR = yInput-xInput-tInput;
