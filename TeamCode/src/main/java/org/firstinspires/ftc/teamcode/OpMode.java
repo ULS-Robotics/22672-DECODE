@@ -29,8 +29,8 @@ public class OpMode extends LinearOpMode {
         motorFR = hardwareMap.get(DcMotor.class, "motorFR");
         motorBL = hardwareMap.get(DcMotor.class, "motorBL");
         motorBR = hardwareMap.get(DcMotor.class, "motorBR");
-        motorFR.setDirection(DcMotor.Direction.REVERSE);
-        motorBR.setDirection(DcMotor.Direction.REVERSE);
+        motorFL.setDirection(DcMotor.Direction.REVERSE);
+        motorBL.setDirection(DcMotor.Direction.REVERSE);
         //imu = hardwareMap.get(Gyroscope.class, "imu");
         //motorTest = hardwareMap.get(DcMotor.class, "motorTest");
         //digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
@@ -47,9 +47,9 @@ public class OpMode extends LinearOpMode {
         while (opModeIsActive()) {
             //FL = y-x-T, FR = y+x-T, BL = y+x+T, BR = y-x-T
 
-            double yInput = gamepad1.left_stick_y;
-            double xInput = gamepad1.left_stick_x;
-            double tInput = gamepad1.right_stick_x;
+            double yInput = -gamepad1.left_stick_y;
+            double xInput = -gamepad1.left_stick_x;
+            double tInput = -gamepad1.right_stick_x;
 
             double powerFL = yInput-xInput-tInput;
             double powerFR = yInput+xInput-tInput;
