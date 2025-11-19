@@ -3,11 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 /*
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 */
 
 @TeleOp(name="Teleop 2025", group="Linear OpMode")
@@ -17,8 +16,9 @@ public class OpMode extends LinearOpMode {
     private Gyroscope imu;
     private DigitalChannel digitalTouch;
     private DistanceSensor sensorColorRange;
+     */
     private Servo servoTest;
-    */
+
     public DcMotor motorTest;
     public DcMotor motorFL, motorFR, motorBL, motorBR;
 
@@ -32,10 +32,9 @@ public class OpMode extends LinearOpMode {
         motorFL.setDirection(DcMotor.Direction.REVERSE);
         motorBL.setDirection(DcMotor.Direction.REVERSE);
         //imu = hardwareMap.get(Gyroscope.class, "imu");
-        //motorTest = hardwareMap.get(DcMotor.class, "motorTest");
         //digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
         //sensorColorRange = hardwareMap.get(DistanceSensor.class, "sensorColorRange");
-        //servoTest = hardwareMap.get(Servo.class, "servoTest");
+        servoTest = hardwareMap.get(Servo.class, "servoTest");
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -50,11 +49,43 @@ public class OpMode extends LinearOpMode {
             double yInput = -gamepad1.left_stick_y;
             double xInput = gamepad1.left_stick_x;
             double tInput = gamepad1.right_stick_x;
+            boolean xHeld = gamepad1.dpad_right;
+            boolean bHeld = gamepad1.dpad_left;
 
-            double powerFL = yInput-xInput+tInput;
-            double powerFR = yInput+xInput-tInput;
-            double powerBL = yInput+xInput+tInput;
-            double powerBR = yInput-xInput-tInput;
+            double powerFL, powerFR, powerBL, powerBR;
+
+            if (xHeld) {
+                // STRAFE LEFT
+                powerFL = -1;
+                powerFR = 1;
+                powerBL = 1;
+                powerBR = -1;
+
+            } else if (bHeld) {
+                // STRAFE RIGHT
+                powerFL = 1;
+                powerFR = -1;
+                powerBL = -1;
+                powerBR = 1;
+
+            } else {
+                // NORMAL DRIVE
+                powerFL = yInput - xInput + tInput;
+                powerFR = yInput + xInput - tInput;
+                powerBL = yInput + xInput + tInput;
+                powerBR = yInput - xInput - tInput;
+            }
+
+            if(gamepad1.y) {
+                // move to 0 degrees.
+                servoTest.setPosition(0);
+            } else if (gamepad1.x || gamepad1.b) {
+                // move to 90 degrees.
+                servoTest.setPosition(0.5);
+            } else if (gamepad1.a) {
+                // move to 180 degrees.
+                servoTest.setPosition(1);
+            }
 
             motorFL.setPower(powerFL);
             motorFR.setPower(powerFR);
@@ -66,15 +97,6 @@ public class OpMode extends LinearOpMode {
             telemetry.addData("BL Power", motorBL.getPower());
             telemetry.addData("BR Power", motorBR.getPower());
             telemetry.update();
-
-            // Check if left bumper is currently held
-            /*tgtPower = -this.gamepad1.left_trigger;
-
-            motorTest.setPower(tgtPower);
-
-            telemetry.addData("Motor Power", motorTest.getPower());
-            telemetry.update();
-             */
         }
 
     }
