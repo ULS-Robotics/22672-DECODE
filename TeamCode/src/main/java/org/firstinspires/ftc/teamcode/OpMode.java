@@ -4,11 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.CRServoImpl;
 @TeleOp(name="Teleop 2025", group="Linear OpMode")
 
 public class OpMode extends LinearOpMode {
-    public CRServoImpl servoTest;
+    public Servo servoTest;
     public DcMotor motorFL, motorFR, motorBL, motorBR;
 
 
@@ -23,7 +22,7 @@ public class OpMode extends LinearOpMode {
         //imu = hardwareMap.get(Gyroscope.class, "imu");
         //digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
         //sensorColorRange = hardwareMap.get(DistanceSensor.class, "sensorColorRange");
-        servoTest = hardwareMap.get(CRServoImpl.class, "servoTest");
+        servoTest = hardwareMap.get(Servo.class, "servoTest");
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
