@@ -30,7 +30,6 @@ public class OpMode extends LinearOpMode {
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
-        double tgtPower = 0;
         while (opModeIsActive()) {
             //FL = y-x-T, FR = y+x-T, BL = y+x+T, BR = y-x-T
 
