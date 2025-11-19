@@ -17,9 +17,7 @@ public class OpMode extends LinearOpMode {
     private DigitalChannel digitalTouch;
     private DistanceSensor sensorColorRange;
      */
-    private Servo servoTest;
-
-    public DcMotor motorTest;
+    public Servo servoTest;
     public DcMotor motorFL, motorFR, motorBL, motorBR;
 
 
