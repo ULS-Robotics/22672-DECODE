@@ -4,19 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-/*
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-*/
-
 @TeleOp(name="Teleop 2025", group="Linear OpMode")
 
 public class OpMode extends LinearOpMode {
-    /*
-    private Gyroscope imu;
-    private DigitalChannel digitalTouch;
-    private DistanceSensor sensorColorRange;
-     */
     public Servo servoTest;
     public DcMotor motorFL, motorFR, motorBL, motorBR;
 
