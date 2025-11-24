@@ -49,7 +49,7 @@ public class OpMode extends LinearOpMode {
         while (opModeIsActive()) {
             //FL = y-x-T, FR = y+x-T, BL = y+x+T, BR = y-x-T
 
-            double drive = -gamepad1.left_stick_y;
+            double drive = gamepad1.left_stick_y;
             double turn = gamepad1.left_stick_x;
             double strafe = gamepad1.right_stick_x * 0.5;
             boolean leftHeld = gamepad1.dpad_right;
@@ -87,7 +87,7 @@ public class OpMode extends LinearOpMode {
             } else {
                 // not NORMAL DRIVE
                 powerFL = Range.clip(drive - turn - strafe, -1, 1);
-                powerFR = Range.clip(drive + turn + strafe, -1, 1);
+                powerFR = Range.clip(drive - turn + strafe, -1, 1);
                 powerBL = Range.clip(drive + turn + strafe, -1, 1);
                 powerBR = Range.clip(drive + turn - strafe, -1, 1);
             }
