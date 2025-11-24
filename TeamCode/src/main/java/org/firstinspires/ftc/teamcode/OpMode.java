@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Gyroscope;
 import com.qualcomm.robotcore.hardware.IMU;
-//import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -25,8 +24,12 @@ public class OpMode extends LinearOpMode {
         motorFR = hardwareMap.get(DcMotor.class, "motorFR");
         motorBL = hardwareMap.get(DcMotor.class, "motorBL");
         motorBR = hardwareMap.get(DcMotor.class, "motorBR");
+
         motorFL.setDirection(DcMotor.Direction.REVERSE);
+        motorFR.setDirection(DcMotor.Direction.FORWARD);
         motorBL.setDirection(DcMotor.Direction.REVERSE);
+        motorBR.setDirection(DcMotor.Direction.FORWARD);
+
         IMU imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
@@ -46,18 +49,20 @@ public class OpMode extends LinearOpMode {
         while (opModeIsActive()) {
             //FL = y-x-T, FR = y+x-T, BL = y+x+T, BR = y-x-T
 
-            double yInput = -gamepad1.left_stick_y;
-            double xInput = gamepad1.left_stick_x;
-            double tInput = gamepad1.right_stick_x;
+            double drive = -gamepad1.left_stick_y;
+            double turn = gamepad1.left_stick_x;
+            double strafe = gamepad1.right_stick_x * 0.5;
             boolean leftHeld = gamepad1.dpad_right;
             boolean rightHeld = gamepad1.dpad_left;
+            boolean upHeld = gamepad1.dpad_up;
+            boolean downHeld = gamepad1.dpad_down;
 
             double powerFL, powerFR, powerBL, powerBR;
 
             double heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-            double adjustedLx = -yInput * Math.sin(heading) + xInput * Math.cos(heading);
-            double adjustedLy = yInput * Math.cos(heading) + xInput * Math.sin(heading);
+            double adjustedLx = -drive * Math.sin(heading) + turn * Math.cos(heading);
+            double adjustedLy = drive * Math.cos(heading) + turn * Math.sin(heading);
 
             if (leftHeld) {
                 // STRAFE LEFT
@@ -73,12 +78,18 @@ public class OpMode extends LinearOpMode {
                 powerBL = -1;
                 powerBR = 1;
 
-            } else {
+            } else if (upHeld) {
                 // NORMAL DRIVE
-                powerFL = adjustedLy - adjustedLx + tInput;
-                powerFR = adjustedLy + adjustedLx - tInput;
-                powerBL = adjustedLy + adjustedLx + tInput;
-                powerBR = adjustedLy - adjustedLx - tInput;
+                powerFL = adjustedLy - adjustedLx + strafe;
+                powerFR = adjustedLy + adjustedLx - strafe;
+                powerBL = adjustedLy + adjustedLx + strafe;
+                powerBR = adjustedLy - adjustedLx - strafe;
+            } else {
+                // not NORMAL DRIVE
+                powerFL = Range.clip(drive - turn - strafe, -1, 1);
+                powerFR = Range.clip(drive + turn + strafe, -1, 1);
+                powerBL = Range.clip(drive + turn + strafe, -1, 1);
+                powerBR = Range.clip(drive + turn - strafe, -1, 1);
             }
 
             /*if(gamepad1.y) {
