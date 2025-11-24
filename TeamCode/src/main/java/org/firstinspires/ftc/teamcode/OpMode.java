@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gyroscope;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.Servo;
+//import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class OpMode extends LinearOpMode {
     public BNO055IMU imu;
-    public Servo servoTest;
+    //public Servo servoTest;
     public DcMotor motorFL, motorFR, motorBL, motorBR;
 
 
@@ -35,7 +35,7 @@ public class OpMode extends LinearOpMode {
         imu.initialize(parameters);
         //digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
         //sensorColorRange = hardwareMap.get(DistanceSensor.class, "sensorColorRange");
-        servoTest = hardwareMap.get(Servo.class, "servoTest");
+        //servoTest = hardwareMap.get(Servo.class, "servoTest");
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -81,7 +81,7 @@ public class OpMode extends LinearOpMode {
                 powerBR = adjustedLy - adjustedLx - tInput;
             }
 
-            if(gamepad1.y) {
+            /*if(gamepad1.y) {
                 // move to 0 degrees.
                 servoTest.setPosition(0);
             } else if (gamepad1.b) {
@@ -90,7 +90,7 @@ public class OpMode extends LinearOpMode {
             } else if (gamepad1.a) {
                 // move to 180 degrees.
                 servoTest.setPosition(1);
-            }
+            }*/
 
             motorFL.setPower(powerFL);
             motorFR.setPower(powerFR);
