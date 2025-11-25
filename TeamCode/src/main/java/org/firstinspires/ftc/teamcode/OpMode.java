@@ -9,6 +9,9 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+
+import java.util.concurrent.TimeUnit;
 
 @TeleOp(name="Teleop 2025", group="Linear OpMode")
 
@@ -36,6 +39,8 @@ public class OpMode extends LinearOpMode {
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
         ));
         imu.initialize(parameters);
+
+        Deadline gamepadRateLimit = new Deadline(500, TimeUnit.MILLISECONDS)
         //digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
         //sensorColorRange = hardwareMap.get(DistanceSensor.class, "sensorColorRange");
         //servoTest = hardwareMap.get(Servo.class, "servoTest");
@@ -58,6 +63,11 @@ public class OpMode extends LinearOpMode {
             boolean downHeld = gamepad1.dpad_down;
 
             double powerFL, powerFR, powerBL, powerBR;
+
+            if (gamepadRateLimit.hasExpired() && gamepad1.a) {
+                imu.resetYaw();
+                gamepadRateLimit.reset();
+            }
 
             double heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
@@ -87,8 +97,8 @@ public class OpMode extends LinearOpMode {
             } else {
                 // not NORMAL DRIVE
                 powerFL = Range.clip(drive - turn - strafe, -1, 1);
-                powerFR = Range.clip(drive - turn + strafe, -1, 1);
-                powerBL = Range.clip(drive + turn + strafe, -1, 1);
+                powerBL = Range.clip(drive - turn + strafe, -1, 1);
+                powerFR = Range.clip(drive + turn + strafe, -1, 1);
                 powerBR = Range.clip(drive + turn - strafe, -1, 1);
             }
 
@@ -98,7 +108,7 @@ public class OpMode extends LinearOpMode {
             } else if (gamepad1.b) {
                 // move to 90 degrees.
                 servoTest.setPosition(0.5);
-            } else if (gamepad1.a) {
+            } else if (gamepad1.x) {
                 // move to 180 degrees.
                 servoTest.setPosition(1);
             }*/
