@@ -40,7 +40,7 @@ public class OpMode extends LinearOpMode {
         ));
         imu.initialize(parameters);
 
-        Deadline gamepadRateLimit = new Deadline(500, TimeUnit.MILLISECONDS)
+        Deadline gamepadRateLimit = new Deadline(500, TimeUnit.MILLISECONDS);
         //digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
         //sensorColorRange = hardwareMap.get(DistanceSensor.class, "sensorColorRange");
         //servoTest = hardwareMap.get(Servo.class, "servoTest");
