@@ -1,129 +1,156 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
-
-import java.util.concurrent.TimeUnit;
 
 @TeleOp(name="Teleop 2025", group="Linear OpMode")
-
 public class OpMode extends LinearOpMode {
-    public BNO055IMU imu;
-    //public Servo servoTest;
-    public DcMotor motorFL, motorFR, motorBL, motorBR;
-
 
     @Override
     public void runOpMode() {
-        motorFL = hardwareMap.get(DcMotor.class, "motorFL");
-        motorFR = hardwareMap.get(DcMotor.class, "motorFR");
-        motorBL = hardwareMap.get(DcMotor.class, "motorBL");
-        motorBR = hardwareMap.get(DcMotor.class, "motorBR");
+
+        // ---------------------------
+        // Hardware Mapping
+        // ---------------------------
+        DcMotor motorFL = hardwareMap.get(DcMotor.class, "motorFL");
+        DcMotor motorFR = hardwareMap.get(DcMotor.class, "motorFR");
+        DcMotor motorBL = hardwareMap.get(DcMotor.class, "motorBL");
+        DcMotor motorBR = hardwareMap.get(DcMotor.class, "motorBR");
 
         motorFL.setDirection(DcMotor.Direction.REVERSE);
         motorFR.setDirection(DcMotor.Direction.FORWARD);
         motorBL.setDirection(DcMotor.Direction.REVERSE);
         motorBR.setDirection(DcMotor.Direction.FORWARD);
 
-        IMU imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
-        ));
-        imu.initialize(parameters);
+        // ---------------------------
+        // Servo Mapping (Dual-Mode Torque Servo)
+        // ---------------------------
+        Servo servoTest = hardwareMap.get(Servo.class, "servoTest");
+        servoTest.setPosition(0.0);  // start at 0 for testing
+        servoTest.setDirection(Servo.Direction.FORWARD);
 
-        Deadline gamepadRateLimit = new Deadline(500, TimeUnit.MILLISECONDS);
-        //digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
-        //sensorColorRange = hardwareMap.get(DistanceSensor.class, "sensorColorRange");
-        //servoTest = hardwareMap.get(Servo.class, "servoTest");
+        // ---------------------------
+        // IMU Initialization
+        // ---------------------------
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                        RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
+                )
+        );
+        imu.initialize(parameters);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-        // Wait for the game to start (driver presses PLAY)
+
         waitForStart();
 
-        // run until the end of the match (driver presses STOP)
+        // ---------------------------
+        // Main Loop
+        // ---------------------------
         while (opModeIsActive()) {
-            //FL = y-x-T, FR = y+x-T, BL = y+x+T, BR = y-x-T
 
-            double drive = gamepad1.left_stick_y;
-            double turn = gamepad1.left_stick_x;
-            double strafe = gamepad1.right_stick_x * 0.5;
-            boolean leftHeld = gamepad1.dpad_right;
-            boolean rightHeld = gamepad1.dpad_left;
-            boolean upHeld = gamepad1.dpad_up;
-            boolean downHeld = gamepad1.dpad_down;
+            // ---------------------------
+            // Gamepad Input
+            // ---------------------------
+            double y = -gamepad1.left_stick_y;  // Forward/back
+            double x = gamepad1.left_stick_x;   // Strafe
+            double rotation = gamepad1.right_stick_x * 0.5;  // Turn
 
-            double powerFL, powerFR, powerBL, powerBR;
+            boolean dpadLeft  = gamepad1.dpad_left;
+            boolean dpadRight = gamepad1.dpad_right;
+            boolean dpadUp    = gamepad1.dpad_up;
+            boolean dpadDown  = gamepad1.dpad_down;
 
-            if (gamepadRateLimit.hasExpired() && gamepad1.a) {
+            // Reset IMU (A button)
+            if (gamepad1.a)
                 imu.resetYaw();
-                gamepadRateLimit.reset();
+
+            // ---------------------------
+            // Servo TEST (note from Pan: ok so it doesn't error, but servo doesn't move? further testing will be done tomorrow)
+            // ---------------------------
+            double currentPos = servoTest.getPosition();
+
+            if (gamepad1.left_bumper) {
+                currentPos -= 0.05; // move toward 0
+            }
+            if (gamepad1.right_bumper) {
+                currentPos += 0.05; // move toward 1
             }
 
-            double heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            servoTest.setPosition(Range.clip(currentPos, 0, 1));
 
-            double adjustedLx = -drive * Math.sin(heading) + turn * Math.cos(heading);
-            double adjustedLy = drive * Math.cos(heading) + turn * Math.sin(heading);
+            // ---------------------------
+            // Field-Centric Transformation
+            // ---------------------------
+            double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-            if (leftHeld) {
-                // STRAFE LEFT
-                powerFL = -1;
-                powerFR = 1;
-                powerBL = 1;
-                powerBR = -1;
+            double rotX = x * Math.cos(heading) - y * Math.sin(heading);
+            double rotY = x * Math.sin(heading) + y * Math.cos(heading);
 
-            } else if (rightHeld) {
-                // STRAFE RIGHT
-                powerFL = 1;
-                powerFR = -1;
-                powerBL = -1;
-                powerBR = 1;
+            // ---------------------------
+            // Mecanum Mixing
+            // ---------------------------
+            double powerFL = rotY + rotX + rotation;
+            double powerFR = rotY - rotX - rotation;
+            double powerBL = rotY - rotX + rotation;
+            double powerBR = rotY + rotX - rotation;
 
-            } else if (upHeld) {
-                // NORMAL DRIVE
-                powerFL = adjustedLy - adjustedLx + strafe;
-                powerFR = adjustedLy + adjustedLx - strafe;
-                powerBL = adjustedLy + adjustedLx + strafe;
-                powerBR = adjustedLy - adjustedLx - strafe;
-            } else {
-                // not NORMAL DRIVE
-                powerFL = Range.clip(drive - turn - strafe, -1, 1);
-                powerBL = Range.clip(drive - turn + strafe, -1, 1);
-                powerFR = Range.clip(drive + turn + strafe, -1, 1);
-                powerBR = Range.clip(drive + turn - strafe, -1, 1);
+            // ---------------------------
+            // DPAD Strafing Overrides
+            // ---------------------------
+            if (dpadLeft) {
+                powerFL = -1; powerFR = 1;
+                powerBL =  1; powerBR = -1;
+            } else if (dpadRight) {
+                powerFL =  1; powerFR = -1;
+                powerBL = -1; powerBR =  1;
+            } else if (dpadUp) {
+                powerFL = 1; powerFR = 1;
+                powerBL = 1; powerBR = 1;
+            } else if (dpadDown) {
+                powerFL = -1; powerFR = -1;
+                powerBL = -1; powerBR = -1;
             }
 
-            /*if(gamepad1.y) {
-                // move to 0 degrees.
-                servoTest.setPosition(0);
-            } else if (gamepad1.b) {
-                // move to 90 degrees.
-                servoTest.setPosition(0.5);
-            } else if (gamepad1.x) {
-                // move to 180 degrees.
-                servoTest.setPosition(1);
-            }*/
+            // ---------------------------
+            // Normalize Motor Power
+            // ---------------------------
+            double max = Math.max(1.0, Math.max(Math.abs(powerFL),
+                    Math.max(Math.abs(powerFR),
+                            Math.max(Math.abs(powerBL), Math.abs(powerBR)))));
 
+            powerFL /= max;
+            powerFR /= max;
+            powerBL /= max;
+            powerBR /= max;
+
+            // ---------------------------
+            // Apply Motor Power
+            // ---------------------------
             motorFL.setPower(powerFL);
             motorFR.setPower(powerFR);
             motorBL.setPower(powerBL);
             motorBR.setPower(powerBR);
 
-            telemetry.addData("FL Power", motorFL.getPower());
-            telemetry.addData("FR Power", motorFR.getPower());
-            telemetry.addData("BL Power", motorBL.getPower());
-            telemetry.addData("BR Power", motorBR.getPower());
+            // ---------------------------
+            // Telemetry
+            // ---------------------------
+            telemetry.addData("IMU", heading);
+            telemetry.addData("Servo Position", servoTest.getPosition());
+            telemetry.addData("FL", powerFL);
+            telemetry.addData("FR", powerFR);
+            telemetry.addData("BL", powerBL);
+            telemetry.addData("BR", powerBR);
             telemetry.update();
         }
-
     }
 }
