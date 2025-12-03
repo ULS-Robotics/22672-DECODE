@@ -1,16 +1,24 @@
 package org.firstinspires.ftc.teamcode;
 
+// ---------------------------
+// Import Statements
+// ---------------------------
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@TeleOp(name="Teleop 2025", group="Linear OpMode")
+// ---------------------------
+// Teleop Code
+// ---------------------------
+@TeleOp(name="Teleop", group="Linear OpMode")
 public class OpMode extends LinearOpMode {
 
     @Override
@@ -23,11 +31,18 @@ public class OpMode extends LinearOpMode {
         DcMotor motorFR = hardwareMap.get(DcMotor.class, "motorFR");
         DcMotor motorBL = hardwareMap.get(DcMotor.class, "motorBL");
         DcMotor motorBR = hardwareMap.get(DcMotor.class, "motorBR");
+        //DcMotor shooterL = hardwareMap.get(DcMotor.class, "shooterL");
+        //DcMotor shooterR = hardwareMap.get(DcMotor.class, "shooterR");
+        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        //DcMotor motorTest = hardwareMap.get(DcMotor.class, "motorTest");
 
         motorFL.setDirection(DcMotor.Direction.REVERSE);
         motorFR.setDirection(DcMotor.Direction.FORWARD);
         motorBL.setDirection(DcMotor.Direction.REVERSE);
         motorBR.setDirection(DcMotor.Direction.FORWARD);
+        //shooterL.setDirection(DcMotor.Direction.FORWARD);
+        //shooterR.setDirection(DcMotor.Direction.FORWARD);
+        intake.setDirection(DcMotor.Direction.FORWARD);
 
         // ---------------------------
         // Servo Mapping (Dual-Mode Torque Servo)
@@ -52,49 +67,69 @@ public class OpMode extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
-
+        imu.resetYaw();
         // ---------------------------
         // Main Loop
         // ---------------------------
         while (opModeIsActive()) {
-
             // ---------------------------
             // Gamepad Input
             // ---------------------------
-            double y = -gamepad1.left_stick_y;  // Forward/back
-            double x = gamepad1.left_stick_x;   // Strafe
-            double rotation = gamepad1.right_stick_x * 0.5;  // Turn
+            Gamepad gmpdA = gamepad1;
+            Gamepad gmpdB = gamepad2;
+            double y = -gmpdA.left_stick_y;  // Forward/back
+            double x = gmpdA.left_stick_x;   // Strafe
+            double rotation = gmpdA.right_stick_x * 0.5;  // Turn
 
-            boolean dpadLeft  = gamepad1.dpad_left;
-            boolean dpadRight = gamepad1.dpad_right;
-            boolean dpadUp    = gamepad1.dpad_up;
-            boolean dpadDown  = gamepad1.dpad_down;
+            boolean dpadLeft  = gmpdA.dpad_left;
+            boolean dpadRight = gmpdA.dpad_right;
+            boolean dpadUp    = gmpdA.dpad_up;
+            boolean dpadDown  = gmpdA.dpad_down;
 
             // Reset IMU (A button)
-            if (gamepad1.a)
+            if (gmpdA.a)
                 imu.resetYaw();
+
+            // ---------------------------
+            // Motor Testing! Comment out if not testing
+            // ---------------------------
+            //double testPower = gmpdB.right_stick_y;
+            //motorTest.setPower(testPower);
 
             // ---------------------------
             // Servo TEST (note from Pan: ok so it doesn't error, but servo doesn't move? further testing will be done tomorrow)
             // ---------------------------
             double currentPos = servoTest.getPosition();
 
-            if (gamepad1.left_bumper) {
+            if (gmpdA.left_bumper) {
                 currentPos -= 0.05; // move toward 0
             }
-            if (gamepad1.right_bumper) {
+            if (gmpdA.right_bumper) {
                 currentPos += 0.05; // move toward 1
             }
 
             servoTest.setPosition(Range.clip(currentPos, 0, 1));
 
             // ---------------------------
+            // Intake and Shooter
+            // ---------------------------
+            boolean gmpdBX = gmpdB.x;
+            if (gmpdB.b) {
+                gmpdBX = false;
+                intake.setPower(0);
+            };
+            if (gmpdBX) {
+                intake.setPower(1);
+            };
+
+            // ---------------------------
             // Field-Centric Transformation
             // ---------------------------
-            double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-
+            double heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            //WATCH
             double rotX = x * Math.cos(heading) - y * Math.sin(heading);
             double rotY = x * Math.sin(heading) + y * Math.cos(heading);
+
 
             // ---------------------------
             // Mecanum Mixing
@@ -103,6 +138,10 @@ public class OpMode extends LinearOpMode {
             double powerFR = rotY - rotX - rotation;
             double powerBL = rotY - rotX + rotation;
             double powerBR = rotY + rotX - rotation;
+//            powerFL = Range.clip(y - x - rotation, -1, 1);
+//            powerFR = Range.clip(y - x + rotation, -1, 1);
+//            powerBL = Range.clip(y + x + rotation, -1, 1);
+//            powerBR = Range.clip(y + x - rotation, -1, 1);
 
             // ---------------------------
             // DPAD Strafing Overrides
