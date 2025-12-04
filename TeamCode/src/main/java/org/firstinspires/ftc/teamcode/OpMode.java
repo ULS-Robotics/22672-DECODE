@@ -113,14 +113,24 @@ public class OpMode extends LinearOpMode {
             // ---------------------------
             // Intake and Shooter
             // ---------------------------
+            boolean moving = false;
             boolean gmpdBX = gmpdB.x;
-            if (gmpdB.b) {
+            boolean gmpdBB = gmpdB.b;
+            if (gmpdBB) {
                 gmpdBX = false;
-                intake.setPower(0);
-            };
-            if (gmpdBX) {
+                moving = true;
+                intake.setPower(-1);
+            } else if (gmpdBX) {
+                gmpdBB = false;
+                moving = true;
                 intake.setPower(1);
-            };
+            } else {
+                gmpdBX = false;
+                gmpdBB = false;
+                moving = true;
+                intake.setPower(0);
+                moving = false;
+            }
 
             // ---------------------------
             // Field-Centric Transformation
@@ -185,6 +195,7 @@ public class OpMode extends LinearOpMode {
             // ---------------------------
             telemetry.addData("IMU", heading);
             telemetry.addData("Servo Position", servoTest.getPosition());
+            telemetry.addData("Intake Status", moving);
             telemetry.addData("FL", powerFL);
             telemetry.addData("FR", powerFR);
             telemetry.addData("BL", powerBL);
