@@ -18,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 // ---------------------------
 // Teleop Code
 // ---------------------------
-@TeleOp(name="Teleop", group="Linear OpMode")
+@TeleOp(name="Teleop", group="DECODE")
 public class OpMode extends LinearOpMode {
 
     @Override
@@ -58,7 +58,7 @@ public class OpMode extends LinearOpMode {
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                        RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
+                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD
                 )
         );
         imu.initialize(parameters);
