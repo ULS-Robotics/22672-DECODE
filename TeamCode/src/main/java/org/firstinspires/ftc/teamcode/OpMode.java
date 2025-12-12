@@ -31,8 +31,8 @@ public class OpMode extends LinearOpMode {
         DcMotor motorFR = hardwareMap.get(DcMotor.class, "motorFR");
         DcMotor motorBL = hardwareMap.get(DcMotor.class, "motorBL");
         DcMotor motorBR = hardwareMap.get(DcMotor.class, "motorBR");
-        //DcMotor shooterL = hardwareMap.get(DcMotor.class, "shooterL");
-        //DcMotor shooterR = hardwareMap.get(DcMotor.class, "shooterR");
+        DcMotor shooterL = hardwareMap.get(DcMotor.class, "shooterL");
+        DcMotor shooterR = hardwareMap.get(DcMotor.class, "shooterR");
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         //DcMotor motorTest = hardwareMap.get(DcMotor.class, "motorTest");
 
@@ -40,8 +40,8 @@ public class OpMode extends LinearOpMode {
         motorFR.setDirection(DcMotor.Direction.FORWARD);
         motorBL.setDirection(DcMotor.Direction.REVERSE);
         motorBR.setDirection(DcMotor.Direction.FORWARD);
-        //shooterL.setDirection(DcMotor.Direction.FORWARD);
-        //shooterR.setDirection(DcMotor.Direction.FORWARD);
+        shooterL.setDirection(DcMotor.Direction.REVERSE);
+        shooterR.setDirection(DcMotor.Direction.FORWARD);
         intake.setDirection(DcMotor.Direction.FORWARD);
 
         // ---------------------------
@@ -58,7 +58,7 @@ public class OpMode extends LinearOpMode {
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD
+                        RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
                 )
         );
         imu.initialize(parameters);
@@ -121,16 +121,24 @@ public class OpMode extends LinearOpMode {
                 moving = true;
                 intake.setPower(-1);
             } else if (gmpdBX) {
-                gmpdBB = false;
                 moving = true;
                 intake.setPower(1);
             } else {
-                gmpdBX = false;
-                gmpdBB = false;
                 moving = true;
                 intake.setPower(0);
                 moving = false;
             }
+
+            double power = 0;
+            float shoot = gmpdB.right_trigger;
+            if (shoot > 0) {
+                power = -1;
+            }
+            if (shoot == 0) {
+                power = 0;
+            }
+            shooterR.setPower(power);
+            shooterL.setPower(power);
 
             // ---------------------------
             // Field-Centric Transformation
