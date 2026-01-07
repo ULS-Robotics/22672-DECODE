@@ -84,9 +84,7 @@ public class OpMode extends LinearOpMode {
                 .build();
 
         visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-                // If you use phone camera instead, replace with:
-                // .setCamera(BuiltinCameraDirection.BACK)
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam"))
                 .addProcessor(aprilTag)
                 .build();
 
@@ -145,16 +143,13 @@ public class OpMode extends LinearOpMode {
             boolean gmpdBX = gmpdB.x;
             boolean gmpdBB = gmpdB.b;
             if (gmpdBB) {
-                gmpdBX = false;
                 moving = true;
                 intake.setPower(-1);
             } else if (gmpdBX) {
                 moving = true;
                 intake.setPower(1);
             } else {
-                moving = true;
                 intake.setPower(0);
-                moving = false;
             }
 
             double power = 0;
