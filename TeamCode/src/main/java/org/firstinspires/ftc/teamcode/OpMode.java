@@ -85,8 +85,6 @@ public class OpMode extends LinearOpMode {
 
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-                // If you use phone camera instead, replace with:
-                // .setCamera(BuiltinCameraDirection.BACK)
                 .addProcessor(aprilTag)
                 .build();
 
