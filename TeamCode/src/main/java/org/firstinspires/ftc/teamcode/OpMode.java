@@ -12,6 +12,11 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -34,6 +39,7 @@ public class OpMode extends LinearOpMode {
         DcMotor shooterL = hardwareMap.get(DcMotor.class, "shooterL");
         DcMotor shooterR = hardwareMap.get(DcMotor.class, "shooterR");
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+
         //DcMotor motorTest = hardwareMap.get(DcMotor.class, "motorTest");
 
         motorFL.setDirection(DcMotor.Direction.REVERSE);
@@ -50,6 +56,12 @@ public class OpMode extends LinearOpMode {
         Servo servoTest = hardwareMap.get(Servo.class, "servoTest");
         servoTest.setPosition(0.0);  // start at 0 for testing
         servoTest.setDirection(Servo.Direction.FORWARD);
+        // ---------------------------
+        // AprilTag Vision Setup
+        // ---------------------------
+        AprilTagProcessor aprilTag;
+        VisionPortal visionPortal;
+
 
         // ---------------------------
         // IMU Initialization
@@ -62,6 +74,21 @@ public class OpMode extends LinearOpMode {
                 )
         );
         imu.initialize(parameters);
+        // ---------------------------
+        // AprilTag Initialization
+        // ---------------------------
+        aprilTag = new AprilTagProcessor.Builder()
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .setDrawTagOutline(true)
+                .build();
+
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                // If you use phone camera instead, replace with:
+                // .setCamera(BuiltinCameraDirection.BACK)
+                .addProcessor(aprilTag)
+                .build();
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -72,6 +99,7 @@ public class OpMode extends LinearOpMode {
         // Main Loop
         // ---------------------------
         while (opModeIsActive()) {
+
             // ---------------------------
             // Gamepad Input
             // ---------------------------
@@ -97,18 +125,18 @@ public class OpMode extends LinearOpMode {
             //motorTest.setPower(testPower);
 
             // ---------------------------
-            // Servo TEST (note from Pan: ok so it doesn't error, but servo doesn't move? further testing will be done tomorrow)
+            // Servo Testing! Comment out if not testing
             // ---------------------------
-            double currentPos = servoTest.getPosition();
+            //double currentPos = servoTest.getPosition();
 
-            if (gmpdA.left_bumper) {
-                currentPos -= 0.05; // move toward 0
-            }
-            if (gmpdA.right_bumper) {
-                currentPos += 0.05; // move toward 1
-            }
+            //if (gmpdA.left_bumper) {
+            //    currentPos -= 0.05; // move toward 0
+            //}
+            //if (gmpdA.right_bumper) {
+            //    currentPos += 0.05; // move toward 1
+            //}
 
-            servoTest.setPosition(Range.clip(currentPos, 0, 1));
+            //servoTest.setPosition(Range.clip(currentPos, 0, 1));
 
             // ---------------------------
             // Intake and Shooter
@@ -199,6 +227,21 @@ public class OpMode extends LinearOpMode {
             motorBR.setPower(powerBR);
 
             // ---------------------------
+            // AprilTag Telemetry
+            // ---------------------------
+            for (AprilTagDetection detection : aprilTag.getDetections()) {
+                telemetry.addLine("AprilTag Detected!");
+                telemetry.addData("ID", detection.id);
+                telemetry.addData("X (in)", detection.ftcPose.x);
+                telemetry.addData("Y (in)", detection.ftcPose.y);
+                telemetry.addData("Z (in)", detection.ftcPose.z);
+                telemetry.addData("Yaw (deg)", detection.ftcPose.yaw);
+                telemetry.addData("Pitch (deg)", detection.ftcPose.pitch);
+                telemetry.addData("Roll (deg)", detection.ftcPose.roll);
+            }
+
+
+            // ---------------------------
             // Telemetry
             // ---------------------------
             telemetry.addData("IMU", heading);
@@ -209,6 +252,9 @@ public class OpMode extends LinearOpMode {
             telemetry.addData("BL", powerBL);
             telemetry.addData("BR", powerBR);
             telemetry.update();
+        }
+        if (visionPortal != null) {
+            visionPortal.close();
         }
     }
 }
