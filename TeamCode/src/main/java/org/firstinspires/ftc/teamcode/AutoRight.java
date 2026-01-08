@@ -35,9 +35,9 @@ public class AutoRight extends LinearOpMode {
         resetRuntime();
 
         // ---------------------------
-        // Drive forward for 1 second
+        // Drive forward for 6 seconds
         // ---------------------------
-        while (opModeIsActive() && getRuntime() < 1.0) {
+        while (opModeIsActive() && getRuntime() < 6.0) {
             motorFL.setPower(-1);
             motorFR.setPower(-1);
             motorBL.setPower(-1);
