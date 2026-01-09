@@ -1,30 +1,34 @@
 package org.firstinspires.ftc.teamcode;
 
-// ---------------------------
-// Import Statements
-// ---------------------------
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-// ---------------------------
-// Teleop Code
-// ---------------------------
-@TeleOp(name="Teleop", group="DECODE")
+@TeleOp(name = "Teleop", group = "DECODE")
 public class OpMode extends LinearOpMode {
+
+    // Hardware
+    DcMotor motorFL, motorFR, motorBL, motorBR;
+    DcMotor shooterL, shooterR, intake;
+    Servo servoTest;
+    IMU imu;
+
+    AprilTagProcessor aprilTag;
+    VisionPortal visionPortal;
+
+    // Subsystems
+    DriveSubsystem drive;
+    IntakeSubsystem intakeSystem;
+    ShooterSubsystem shooterSystem;
 
     @Override
     public void runOpMode() {
@@ -32,41 +36,28 @@ public class OpMode extends LinearOpMode {
         // ---------------------------
         // Hardware Mapping
         // ---------------------------
-        DcMotor motorFL = hardwareMap.get(DcMotor.class, "motorFL");
-        DcMotor motorFR = hardwareMap.get(DcMotor.class, "motorFR");
-        DcMotor motorBL = hardwareMap.get(DcMotor.class, "motorBL");
-        DcMotor motorBR = hardwareMap.get(DcMotor.class, "motorBR");
-        DcMotor shooterL = hardwareMap.get(DcMotor.class, "shooterL");
-        DcMotor shooterR = hardwareMap.get(DcMotor.class, "shooterR");
-        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        motorFL = hardwareMap.get(DcMotor.class, "motorFL");
+        motorFR = hardwareMap.get(DcMotor.class, "motorFR");
+        motorBL = hardwareMap.get(DcMotor.class, "motorBL");
+        motorBR = hardwareMap.get(DcMotor.class, "motorBR");
+        shooterL = hardwareMap.get(DcMotor.class, "shooterL");
+        shooterR = hardwareMap.get(DcMotor.class, "shooterR");
+        intake = hardwareMap.get(DcMotor.class, "intake");
 
-        //DcMotor motorTest = hardwareMap.get(DcMotor.class, "motorTest");
+        servoTest = hardwareMap.get(Servo.class, "servoTest");
+        servoTest.setPosition(0);
 
         motorFL.setDirection(DcMotor.Direction.REVERSE);
         motorFR.setDirection(DcMotor.Direction.FORWARD);
         motorBL.setDirection(DcMotor.Direction.REVERSE);
         motorBR.setDirection(DcMotor.Direction.FORWARD);
+
         shooterL.setDirection(DcMotor.Direction.REVERSE);
         shooterR.setDirection(DcMotor.Direction.FORWARD);
         intake.setDirection(DcMotor.Direction.FORWARD);
 
-        // ---------------------------
-        // Servo Mapping (Dual-Mode Torque Servo)
-        // ---------------------------
-        Servo servoTest = hardwareMap.get(Servo.class, "servoTest");
-        servoTest.setPosition(0.0);  // start at 0 for testing
-        servoTest.setDirection(Servo.Direction.FORWARD);
-        // ---------------------------
-        // AprilTag Vision Setup
-        // ---------------------------
-        AprilTagProcessor aprilTag;
-        VisionPortal visionPortal;
-
-
-        // ---------------------------
-        // IMU Initialization
-        // ---------------------------
-        IMU imu = hardwareMap.get(IMU.class, "imu");
+        // IMU
+        imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP,
@@ -74,185 +65,135 @@ public class OpMode extends LinearOpMode {
                 )
         );
         imu.initialize(parameters);
-        // ---------------------------
-        // AprilTag Initialization
-        // ---------------------------
+
+        // AprilTag
         aprilTag = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
                 .build();
-
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
                 .addProcessor(aprilTag)
                 .build();
+
+        // ---------------------------
+        // Initialize Subsystems
+        // ---------------------------
+        drive = new DriveSubsystem(motorFL, motorFR, motorBL, motorBR, imu);
+        intakeSystem = new IntakeSubsystem(intake);
+        shooterSystem = new ShooterSubsystem(shooterL, shooterR);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         waitForStart();
         imu.resetYaw();
-        // ---------------------------
-        // Main Loop
-        // ---------------------------
+
         while (opModeIsActive()) {
 
-            // ---------------------------
-            // Gamepad Input
-            // ---------------------------
-            Gamepad gmpdA = gamepad1;
-            Gamepad gmpdB = gamepad2;
-            double y = -gmpdA.left_stick_y;  // Forward/back
-            double x = gmpdA.left_stick_x;   // Strafe
-            double rotation = gmpdA.right_stick_x * 0.5;  // Turn
+            // Reset IMU if button A
+            if (gamepad1.a) imu.resetYaw();
 
-            boolean dpadLeft  = gmpdA.dpad_left;
-            boolean dpadRight = gmpdA.dpad_right;
-            boolean dpadUp    = gmpdA.dpad_up;
-            boolean dpadDown  = gmpdA.dpad_down;
+            // Apply deadzones to joystick values
+            double y = -applyDeadzone(gamepad1.left_stick_y);
+            double x = applyDeadzone(gamepad1.left_stick_x);
+            double rotation = applyDeadzone(gamepad1.right_stick_x) * 0.5;
 
-            // Reset IMU (A button)
-            if (gmpdA.a)
-                imu.resetYaw();
+            // Drive
+            drive.driveFieldCentric(y, x, rotation, gamepad1);
 
-            // ---------------------------
-            // Motor Testing! Comment out if not testing
-            // ---------------------------
-            //double testPower = gmpdB.right_stick_y;
-            //motorTest.setPower(testPower);
+            // Intake & Shooter
+            boolean intakeMoving = intakeSystem.handleIntake(gamepad2);
+            shooterSystem.handleShooter(gamepad2);
 
-            // ---------------------------
-            // Servo Testing! Comment out if not testing
-            // ---------------------------
-            //double currentPos = servoTest.getPosition();
+            // Telemetry
+            telemetry.addData("Intake Active", intakeMoving);
+            telemetry.update();
+        }
 
-            //if (gmpdA.left_bumper) {
-            //    currentPos -= 0.05; // move toward 0
-            //}
-            //if (gmpdA.right_bumper) {
-            //    currentPos += 0.05; // move toward 1
-            //}
+        if (visionPortal != null) visionPortal.close();
+    }
 
-            //servoTest.setPosition(Range.clip(currentPos, 0, 1));
+    // ---------------------------
+    // Deadzone Helper
+    // ---------------------------
+    private double applyDeadzone(double value) {
+        return Math.abs(value) > 0.1 ? value : 0;
+    }
 
-            // ---------------------------
-            // Intake and Shooter
-            // ---------------------------
-            boolean moving = false;
-            boolean gmpdBX = gmpdB.x;
-            boolean gmpdBB = gmpdB.b;
-            if (gmpdBB) {
-                gmpdBX = false;
-                moving = true;
-                intake.setPower(-1);
-            } else if (gmpdBX) {
-                moving = true;
-                intake.setPower(1);
-            } else {
-                moving = true;
-                intake.setPower(0);
-                moving = false;
-            }
+    // ======================================================
+    // ==================== SUBSYSTEMS =====================
+    // ======================================================
 
-            double power = 0;
-            float shoot = gmpdB.right_trigger;
-            if (shoot > 0) {
-                power = -1;
-            }
-            if (shoot == 0) {
-                power = 0;
-            }
-            shooterR.setPower(power);
-            shooterL.setPower(power);
+    private static class DriveSubsystem {
+        DcMotor motorFL, motorFR, motorBL, motorBR;
+        IMU imu;
 
-            // ---------------------------
-            // Field-Centric Transformation
-            // ---------------------------
+        public DriveSubsystem(DcMotor fl, DcMotor fr, DcMotor bl, DcMotor br, IMU imu) {
+            this.motorFL = fl;
+            this.motorFR = fr;
+            this.motorBL = bl;
+            this.motorBR = br;
+            this.imu = imu;
+        }
+
+        public void driveFieldCentric(double y, double x, double rotation, Gamepad gamepad) {
             double heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-            //WATCH
+
             double rotX = x * Math.cos(heading) - y * Math.sin(heading);
             double rotY = x * Math.sin(heading) + y * Math.cos(heading);
 
+            double fl = rotY + rotX + rotation;
+            double fr = rotY - rotX - rotation;
+            double bl = rotY - rotX + rotation;
+            double br = rotY + rotX - rotation;
 
-            // ---------------------------
-            // Mecanum Mixing
-            // ---------------------------
-            double powerFL = rotY + rotX + rotation;
-            double powerFR = rotY - rotX - rotation;
-            double powerBL = rotY - rotX + rotation;
-            double powerBR = rotY + rotX - rotation;
-//            powerFL = Range.clip(y - x - rotation, -1, 1);
-//            powerFR = Range.clip(y - x + rotation, -1, 1);
-//            powerBL = Range.clip(y + x + rotation, -1, 1);
-//            powerBR = Range.clip(y + x - rotation, -1, 1);
+            // D-pad overrides
+            if (gamepad.dpad_left) { fl=-1; fr=1; bl=1; br=-1; }
+            else if (gamepad.dpad_right) { fl=1; fr=-1; bl=-1; br=1; }
+            else if (gamepad.dpad_up) { fl=fr=bl=br=1; }
+            else if (gamepad.dpad_down) { fl=fr=bl=br=-1; }
 
-            // ---------------------------
-            // DPAD Strafing Overrides
-            // ---------------------------
-            if (dpadLeft) {
-                powerFL = -1; powerFR = 1;
-                powerBL =  1; powerBR = -1;
-            } else if (dpadRight) {
-                powerFL =  1; powerFR = -1;
-                powerBL = -1; powerBR =  1;
-            } else if (dpadUp) {
-                powerFL = 1; powerFR = 1;
-                powerBL = 1; powerBR = 1;
-            } else if (dpadDown) {
-                powerFL = -1; powerFR = -1;
-                powerBL = -1; powerBR = -1;
-            }
+            double max = Math.max(1.0, Math.max(Math.abs(fl),
+                    Math.max(Math.abs(fr), Math.max(Math.abs(bl), Math.abs(br)))));
 
-            // ---------------------------
-            // Normalize Motor Power
-            // ---------------------------
-            double max = Math.max(1.0, Math.max(Math.abs(powerFL),
-                    Math.max(Math.abs(powerFR),
-                            Math.max(Math.abs(powerBL), Math.abs(powerBR)))));
-
-            powerFL /= max;
-            powerFR /= max;
-            powerBL /= max;
-            powerBR /= max;
-
-            // ---------------------------
-            // Apply Motor Power
-            // ---------------------------
-            motorFL.setPower(powerFL);
-            motorFR.setPower(powerFR);
-            motorBL.setPower(powerBL);
-            motorBR.setPower(powerBR);
-
-            // ---------------------------
-            // AprilTag Telemetry
-            // ---------------------------
-            for (AprilTagDetection detection : aprilTag.getDetections()) {
-                telemetry.addLine("AprilTag Detected!");
-                telemetry.addData("ID", detection.id);
-                telemetry.addData("X (in)", detection.ftcPose.x);
-                telemetry.addData("Y (in)", detection.ftcPose.y);
-                telemetry.addData("Z (in)", detection.ftcPose.z);
-                telemetry.addData("Yaw (deg)", detection.ftcPose.yaw);
-                telemetry.addData("Pitch (deg)", detection.ftcPose.pitch);
-                telemetry.addData("Roll (deg)", detection.ftcPose.roll);
-            }
-
-
-            // ---------------------------
-            // Telemetry
-            // ---------------------------
-            telemetry.addData("IMU", heading);
-            telemetry.addData("Servo Position", servoTest.getPosition());
-            telemetry.addData("Intake Status", moving);
-            telemetry.addData("FL", powerFL);
-            telemetry.addData("FR", powerFR);
-            telemetry.addData("BL", powerBL);
-            telemetry.addData("BR", powerBR);
-            telemetry.update();
+            motorFL.setPower(fl / max);
+            motorFR.setPower(fr / max);
+            motorBL.setPower(bl / max);
+            motorBR.setPower(br / max);
         }
-        if (visionPortal != null) {
-            visionPortal.close();
+    }
+
+    private static class IntakeSubsystem {
+        DcMotor intakeMotor;
+
+        public IntakeSubsystem(DcMotor intake) {
+            this.intakeMotor = intake;
+        }
+
+        public boolean handleIntake(Gamepad gamepad) {
+            double power = 0;
+            if (gamepad.b) power = -1;
+            else if (gamepad.x) power = 1;
+
+            intakeMotor.setPower(power);
+            return power != 0;
+        }
+    }
+
+    private static class ShooterSubsystem {
+        DcMotor shooterL, shooterR;
+
+        public ShooterSubsystem(DcMotor l, DcMotor r) {
+            this.shooterL = l;
+            this.shooterR = r;
+        }
+
+        public void handleShooter(Gamepad gamepad) {
+            double power = gamepad.right_trigger > 0 ? -1 : 0;
+            shooterL.setPower(power);
+            shooterR.setPower(power);
         }
     }
 }
