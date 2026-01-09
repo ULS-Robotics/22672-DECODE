@@ -7,10 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@Autonomous(name="DECODE Auto Up", group="DECODE")
+@Autonomous(name = "DECODE Auto Up", group = "DECODE")
 public class AutoLeft extends LinearOpMode {
-
-    DcMotor motorFL, motorFR, motorBL, motorBR;
 
     @Override
     public void runOpMode() {
@@ -18,42 +16,45 @@ public class AutoLeft extends LinearOpMode {
         // ---------------------------
         // Hardware Mapping
         // ---------------------------
-        motorFL = hardwareMap.get(DcMotor.class, "motorFL");
-        motorFR = hardwareMap.get(DcMotor.class, "motorFR");
-        motorBL = hardwareMap.get(DcMotor.class, "motorBL");
-        motorBR = hardwareMap.get(DcMotor.class, "motorBR");
+        DcMotor motorFL = hardwareMap.get(DcMotor.class, "motorFL");
+        DcMotor motorFR = hardwareMap.get(DcMotor.class, "motorFR");
+        DcMotor motorBL = hardwareMap.get(DcMotor.class, "motorBL");
+        DcMotor motorBR = hardwareMap.get(DcMotor.class, "motorBR");
 
         motorFL.setDirection(DcMotor.Direction.REVERSE);
         motorFR.setDirection(DcMotor.Direction.FORWARD);
         motorBL.setDirection(DcMotor.Direction.REVERSE);
         motorBR.setDirection(DcMotor.Direction.FORWARD);
 
+        motorFL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         waitForStart();
-        resetRuntime();
 
-        // ---------------------------
-        // Drive forward for 6 seconds
-        // ---------------------------
-        while (opModeIsActive() && getRuntime() < 6.0) {
-            motorFL.setPower(1);
-            motorFR.setPower(1);
-            motorBL.setPower(1);
-            motorBR.setPower(1);
+        if (opModeIsActive()) {
 
-            telemetry.addData("Runtime", getRuntime());
-            telemetry.update();
+            // ---------------------------
+            // Drive forward for 6 seconds
+            // ---------------------------
+            motorFL.setPower(1.0);
+            motorFR.setPower(1.0);
+            motorBL.setPower(1.0);
+            motorBR.setPower(1.0);
+
+            sleep(6000);
+
+            // ---------------------------
+            // Stop motors
+            // ---------------------------
+            motorFL.setPower(0);
+            motorFR.setPower(0);
+            motorBL.setPower(0);
+            motorBR.setPower(0);
         }
-
-        // ---------------------------
-        // Stop motors
-        // ---------------------------
-        motorFL.setPower(0);
-        motorFR.setPower(0);
-        motorBL.setPower(0);
-        motorBR.setPower(0);
     }
 }
-
