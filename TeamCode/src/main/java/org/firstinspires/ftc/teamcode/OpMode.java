@@ -22,12 +22,12 @@ public class OpMode extends LinearOpMode {
     Servo servoTest;
     IMU imu;
 
-    AprilTagProcessor aprilTag;
-    VisionPortal visionPortal;
+    //AprilTagProcessor aprilTag;
+    //VisionPortal visionPortal;
 
     // Subsystems
     DriveSubsystem drive;
-    IntakeSubsystem intakeSystem;
+    //IntakeSubsystem intakeSystem;
     ShooterSubsystem shooterSystem;
 
     @Override
@@ -42,7 +42,7 @@ public class OpMode extends LinearOpMode {
         motorBR = hardwareMap.get(DcMotor.class, "motorBR");
         shooterL = hardwareMap.get(DcMotor.class, "shooterL");
         shooterR = hardwareMap.get(DcMotor.class, "shooterR");
-        intake = hardwareMap.get(DcMotor.class, "intake");
+        //intake = hardwareMap.get(DcMotor.class, "intake");
 
         servoTest = hardwareMap.get(Servo.class, "servoTest");
         servoTest.setPosition(0);
@@ -54,7 +54,7 @@ public class OpMode extends LinearOpMode {
 
         shooterL.setDirection(DcMotor.Direction.REVERSE);
         shooterR.setDirection(DcMotor.Direction.FORWARD);
-        intake.setDirection(DcMotor.Direction.FORWARD);
+        //intake.setDirection(DcMotor.Direction.FORWARD);
 
         // IMU
         imu = hardwareMap.get(IMU.class, "imu");
@@ -67,7 +67,7 @@ public class OpMode extends LinearOpMode {
         imu.initialize(parameters);
 
         // AprilTag
-        aprilTag = new AprilTagProcessor.Builder()
+        /*aprilTag = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
@@ -75,13 +75,13 @@ public class OpMode extends LinearOpMode {
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
                 .addProcessor(aprilTag)
-                .build();
+                .build();*/
 
         // ---------------------------
         // Initialize Subsystems
         // ---------------------------
         drive = new DriveSubsystem(motorFL, motorFR, motorBL, motorBR, imu);
-        intakeSystem = new IntakeSubsystem(intake);
+        //intakeSystem = new IntakeSubsystem(intake);
         shooterSystem = new ShooterSubsystem(shooterL, shooterR);
 
         telemetry.addData("Status", "Initialized");
@@ -104,15 +104,15 @@ public class OpMode extends LinearOpMode {
             drive.driveFieldCentric(y, x, rotation, gamepad1);
 
             // Intake & Shooter
-            boolean intakeMoving = intakeSystem.handleIntake(gamepad2);
+            //boolean intakeMoving = intakeSystem.handleIntake(gamepad2);
             shooterSystem.handleShooter(gamepad2);
 
             // Telemetry
-            telemetry.addData("Intake Active", intakeMoving);
+            //telemetry.addData("Intake Active", intakeMoving);
             telemetry.update();
         }
 
-        if (visionPortal != null) visionPortal.close();
+        //if (visionPortal != null) visionPortal.close();
     }
 
     // ---------------------------
@@ -165,7 +165,7 @@ public class OpMode extends LinearOpMode {
         }
     }
 
-    private static class IntakeSubsystem {
+    /*private static class IntakeSubsystem {
         DcMotor intakeMotor;
 
         public IntakeSubsystem(DcMotor intake) {
@@ -180,7 +180,7 @@ public class OpMode extends LinearOpMode {
             intakeMotor.setPower(power);
             return power != 0;
         }
-    }
+    }*/
 
     private static class ShooterSubsystem {
         DcMotor shooterL, shooterR;
@@ -191,7 +191,7 @@ public class OpMode extends LinearOpMode {
         }
 
         public void handleShooter(Gamepad gamepad) {
-            double power = gamepad.right_trigger > 0 ? -1 : 0;
+            double power = gamepad.right_trigger > 0 ? -0.75 : 0;
             shooterL.setPower(power);
             shooterR.setPower(power);
         }
