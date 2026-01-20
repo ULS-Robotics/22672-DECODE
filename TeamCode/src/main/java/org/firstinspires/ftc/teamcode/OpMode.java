@@ -27,7 +27,7 @@ public class OpMode extends LinearOpMode {
 
     // Subsystems
     DriveSubsystem drive;
-    IntakeSubsystem intakeSystem;
+    //IntakeSubsystem intakeSystem;
     ShooterSubsystem shooterSystem;
 
     @Override
@@ -81,7 +81,7 @@ public class OpMode extends LinearOpMode {
         // Initialize Subsystems
         // ---------------------------
         drive = new DriveSubsystem(motorFL, motorFR, motorBL, motorBR, imu);
-        intakeSystem = new IntakeSubsystem(intake);
+        //intakeSystem = new IntakeSubsystem(intake);
         shooterSystem = new ShooterSubsystem(shooterL, shooterR);
 
         telemetry.addData("Status", "Initialized");
@@ -104,11 +104,11 @@ public class OpMode extends LinearOpMode {
             drive.driveFieldCentric(y, x, rotation, gamepad1);
 
             // Intake & Shooter
-            boolean intakeMoving = intakeSystem.handleIntake(gamepad2);
+            //boolean intakeMoving = intakeSystem.handleIntake(gamepad2);
             shooterSystem.handleShooter(gamepad2);
 
             // Telemetry
-            telemetry.addData("Intake Active", intakeMoving);
+            //telemetry.addData("Intake Active", intakeMoving);
             telemetry.update();
         }
 
@@ -165,7 +165,7 @@ public class OpMode extends LinearOpMode {
         }
     }
 
-    private static class IntakeSubsystem {
+    /*private static class IntakeSubsystem {
         DcMotor intakeMotor;
 
         public IntakeSubsystem(DcMotor intake) {
@@ -180,7 +180,7 @@ public class OpMode extends LinearOpMode {
             intakeMotor.setPower(power);
             return power != 0;
         }
-    }
+    }*/
 
     private static class ShooterSubsystem {
         DcMotor shooterL, shooterR;
