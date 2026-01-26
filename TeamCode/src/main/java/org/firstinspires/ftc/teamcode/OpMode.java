@@ -4,6 +4,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -18,8 +19,8 @@ public class OpMode extends LinearOpMode {
 
     // Hardware
     DcMotor motorFL, motorFR, motorBL, motorBR;
-    DcMotor shooterL, shooterR, intake;
-    Servo servoTest;
+    DcMotor shooterL;
+    DcMotor shooterR;
     IMU imu;
 
     //AprilTagProcessor aprilTag;
@@ -27,7 +28,7 @@ public class OpMode extends LinearOpMode {
 
     // Subsystems
     DriveSubsystem drive;
-    //IntakeSubsystem intakeSystem;
+    IntakeSubsystem intakeSystem;
     ShooterSubsystem shooterSystem;
 
     @Override
@@ -42,10 +43,9 @@ public class OpMode extends LinearOpMode {
         motorBR = hardwareMap.get(DcMotor.class, "motorBR");
         shooterL = hardwareMap.get(DcMotor.class, "shooterL");
         shooterR = hardwareMap.get(DcMotor.class, "shooterR");
-        //intake = hardwareMap.get(DcMotor.class, "intake");
 
-        servoTest = hardwareMap.get(Servo.class, "servoTest");
-        servoTest.setPosition(0);
+        Servo intake = hardwareMap.get(Servo.class, "Intake");
+
 
         motorFL.setDirection(DcMotor.Direction.REVERSE);
         motorFR.setDirection(DcMotor.Direction.FORWARD);
@@ -54,7 +54,6 @@ public class OpMode extends LinearOpMode {
 
         shooterL.setDirection(DcMotor.Direction.REVERSE);
         shooterR.setDirection(DcMotor.Direction.FORWARD);
-        //intake.setDirection(DcMotor.Direction.FORWARD);
 
         // IMU
         imu = hardwareMap.get(IMU.class, "imu");
@@ -81,7 +80,7 @@ public class OpMode extends LinearOpMode {
         // Initialize Subsystems
         // ---------------------------
         drive = new DriveSubsystem(motorFL, motorFR, motorBL, motorBR, imu);
-        //intakeSystem = new IntakeSubsystem(intake);
+        intakeSystem = new IntakeSubsystem(intake);
         shooterSystem = new ShooterSubsystem(shooterL, shooterR);
 
         telemetry.addData("Status", "Initialized");
@@ -104,11 +103,10 @@ public class OpMode extends LinearOpMode {
             drive.driveFieldCentric(y, x, rotation, gamepad1);
 
             // Intake & Shooter
-            //boolean intakeMoving = intakeSystem.handleIntake(gamepad2);
+            intakeSystem.handleIntake(gamepad2);
             shooterSystem.handleShooter(gamepad2);
 
             // Telemetry
-            //telemetry.addData("Intake Active", intakeMoving);
             telemetry.update();
         }
 
@@ -123,7 +121,7 @@ public class OpMode extends LinearOpMode {
     }
 
     // ======================================================
-    // ==================== SUBSYSTEMS =====================
+    //  =================== SUBSYSTEMS =====================
     // ======================================================
 
     private static class DriveSubsystem {
@@ -165,22 +163,44 @@ public class OpMode extends LinearOpMode {
         }
     }
 
-    /*private static class IntakeSubsystem {
-        DcMotor intakeMotor;
+    private static class IntakeSubsystem {
+        private final Servo intake;
 
-        public IntakeSubsystem(DcMotor intake) {
-            this.intakeMotor = intake;
+        private static final double INTAKE_IN = 0.75;
+        private static final double INTAKE_OUT = 0.0;
+        private static final double INTAKE_STOP = 0.5;
+
+        public IntakeSubsystem(Servo intake) {
+            this.intake = intake;
+            intake.setPosition(INTAKE_STOP);
         }
 
-        public boolean handleIntake(Gamepad gamepad) {
-            double power = 0;
-            if (gamepad.b) power = -1;
-            else if (gamepad.x) power = 1;
+        public void handleIntake(Gamepad gamepad) {
 
-            intakeMotor.setPower(power);
-            return power != 0;
+            boolean up = gamepad.dpad_up;
+            boolean down = gamepad.dpad_down;
+            boolean left = gamepad.dpad_left;
+            boolean right = gamepad.dpad_right;
+
+            int pressedCount = 0;
+            if (up) pressedCount++;
+            if (down) pressedCount++;
+            if (left) pressedCount++;
+            if (right) pressedCount++;
+
+            if (pressedCount == 1) {
+                if (up) {
+                    intake.setPosition(INTAKE_IN);
+                } else if (down) {
+                    intake.setPosition(INTAKE_OUT);
+                } else {
+                    intake.setPosition(INTAKE_STOP); // left or right alone
+                }
+            } else {
+                intake.setPosition(INTAKE_STOP); // multiple or none
+            }
         }
-    }*/
+    }
 
     private static class ShooterSubsystem {
         DcMotor shooterL, shooterR;
@@ -191,7 +211,8 @@ public class OpMode extends LinearOpMode {
         }
 
         public void handleShooter(Gamepad gamepad) {
-            double power = gamepad.right_trigger > 0 ? -0.75 : 0;
+            double power;
+            power = gamepad.right_trigger > 0 ? -0.55 : 0;
             shooterL.setPower(power);
             shooterR.setPower(power);
         }
