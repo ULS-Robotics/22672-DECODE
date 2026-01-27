@@ -3,16 +3,13 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 @TeleOp(name = "Teleop", group = "DECODE")
 public class OpMode extends LinearOpMode {
@@ -44,7 +41,7 @@ public class OpMode extends LinearOpMode {
         shooterL = hardwareMap.get(DcMotor.class, "shooterL");
         shooterR = hardwareMap.get(DcMotor.class, "shooterR");
 
-        Servo intake = hardwareMap.get(Servo.class, "Intake");
+        CRServo intake = hardwareMap.get(CRServo.class, "Intake");
 
 
         motorFL.setDirection(DcMotor.Direction.REVERSE);
@@ -164,43 +161,23 @@ public class OpMode extends LinearOpMode {
     }
 
     private static class IntakeSubsystem {
-        private final Servo intake;
+        private final CRServo intake;
 
-        private static final double INTAKE_IN = 0.75;
-        private static final double INTAKE_OUT = 0.0;
-        private static final double INTAKE_STOP = 0.5;
-
-        public IntakeSubsystem(Servo intake) {
+        public IntakeSubsystem(CRServo intake) {
             this.intake = intake;
-            intake.setPosition(INTAKE_STOP);
         }
 
         public void handleIntake(Gamepad gamepad) {
+            double power = gamepad.left_trigger;
 
-            boolean up = gamepad.dpad_up;
-            boolean down = gamepad.dpad_down;
-            boolean left = gamepad.dpad_left;
-            boolean right = gamepad.dpad_right;
-
-            int pressedCount = 0;
-            if (up) pressedCount++;
-            if (down) pressedCount++;
-            if (left) pressedCount++;
-            if (right) pressedCount++;
-
-            if (pressedCount == 1) {
-                if (up) {
-                    intake.setPosition(INTAKE_IN);
-                } else if (down) {
-                    intake.setPosition(INTAKE_OUT);
-                } else {
-                    intake.setPosition(INTAKE_STOP); // left or right alone
-                }
-            } else {
-                intake.setPosition(INTAKE_STOP); // multiple or none
+            if (gamepad.left_bumper) {
+                power = -power;
             }
+
+            intake.setPower(power);
         }
     }
+
 
     private static class ShooterSubsystem {
         DcMotor shooterL, shooterR;
